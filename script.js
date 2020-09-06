@@ -1,17 +1,42 @@
-fetch("./students.json")
-  .then((response) => response.json())
-  .then((data) => getStudentsFromFile(data));
+let Student = {
+  firstName: null,
+  middleName: null,
+  nickName: null,
+  lastName: null,
+  image: null,
+  gender: null,
+  house: null,
+};
+
+let studentsArray = [];
+
+fetchFile("./students.json");
+
+function fetchFile(filename) {
+  fetch(filename)
+    .then((response) => response.json())
+    .then((data) => getStudentsFromFile(data));
+}
 
 function getStudentsFromFile(data) {
-  data.forEach((student) => {
-    console.log(
-      getStudentFirstName(student),
-      getStudentMiddleName(student),
-      getStudentLastName(student),
-      getStudentGender(student),
-      getStudentHouse(student)
-    );
+  data.forEach((studentJSON) => {
+    addStudent(studentJSON);
   });
+  console.table(studentsArray);
+}
+
+function addStudent(studentJSON) {
+  let student = Object.create(Student);
+  student.firstName = getStudentFirstName(studentJSON);
+  if (getStudentMiddleName(studentJSON).isNickname == true) {
+    student.nickName = getStudentMiddleName(studentJSON).name;
+  } else {
+    student.middleName = getStudentMiddleName(studentJSON).name;
+  }
+  student.lastName = getStudentLastName(studentJSON);
+  student.gender = getStudentGender(studentJSON);
+  student.house = getStudentHouse(studentJSON);
+  studentsArray.push(student);
 }
 
 function getStudentFullname(student) {
@@ -41,14 +66,25 @@ function getStudentMiddleName(student) {
   if (getStudentFullname(student).split(" ").length >= 3) {
     let middleName = getStudentFullname(student).split(" ")[1];
     if (middleName.charAt(0) != '"') {
-      return middleName.charAt(0).toUpperCase() + middleName.slice(1);
+      //if is middle name
+      return {
+        name: middleName.charAt(0).toUpperCase() + middleName.slice(1),
+        isNickname: false,
+      };
     } else {
-      return (
-        middleName.charAt(1).toUpperCase() +
-        middleName.slice(2, middleName.length - 1)
-      );
+      //if is nick name
+      return {
+        name:
+          middleName.charAt(1).toUpperCase() +
+          middleName.slice(2, middleName.length - 1),
+        isNickname: true,
+      };
     }
-  }
+  } else
+    return {
+      name: undefined,
+      isNickname: false,
+    };
 }
 
 function getStudentHouse(student) {
